@@ -1,0 +1,43 @@
+@model PropertyRentalManagement.Models.Message
+
+@{
+    ViewData["Title"] = "New Message";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h3 class="card-title mb-0"><i class="bi bi-send me-2"></i>Send New Message</h3>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ReceiverId" class="form-label fw-bold">To (Receiver)</label>
+                        <select asp-for="ReceiverId" class="form-select" asp-items="ViewBag.ReceiverId"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label fw-bold">Subject</label>
+                        <input asp-for="Subject" class="form-control" placeholder="What is this about?" />
+                        <span asp-validation-for="Subject" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label fw-bold">Message Content</label>
+                        <textarea asp-for="Content" class="form-control" rows="5" placeholder="Write your message here..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4"><i class="bi bi-arrow-left me-1"></i>Back to Messages</a>
+                        <button type="submit" class="btn btn-primary px-5"><i class="bi bi-send-fill me-1"></i>Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

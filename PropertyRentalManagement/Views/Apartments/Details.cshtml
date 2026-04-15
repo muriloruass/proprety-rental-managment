@@ -1,0 +1,39 @@
+@model PropertyRentalManagement.Models.Apartment
+
+@{
+    ViewData["Title"] = "Apartment Details";
+}
+
+<h1>Apartment Details</h1>
+<hr />
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">@Html.DisplayNameFor(model => model.AptNumber)</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.AptNumber)</dd>
+
+            <dt class="col-sm-2">Building</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.Building.Name)</dd>
+
+            <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Rooms)</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.Rooms)</dd>
+
+            <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Bathrooms)</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.Bathrooms)</dd>
+
+            <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Rent)</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.Rent)</dd>
+
+            <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Status)</dt>
+            <dd class="col-sm-10">
+                @if(Model.Status == "Available") { <span class="badge bg-success">@Model.Status</span> }
+                else if(Model.Status == "Under Maintenance") { <span class="badge bg-warning text-dark">@Model.Status</span> }
+                else { <span class="badge bg-danger">@Model.Status</span> }
+            </dd>
+        </dl>
+    </div>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

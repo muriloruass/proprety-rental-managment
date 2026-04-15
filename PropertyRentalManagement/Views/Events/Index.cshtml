@@ -1,0 +1,46 @@
+@model IEnumerable<PropertyRentalManagement.Models.Event>
+
+@{
+    ViewData["Title"] = "Events & Issues";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-exclamation-triangle me-2"></i>Events & Issues</h1>
+    <a asp-action="Create" class="btn btn-warning shadow-sm"><i class="bi bi-plus-lg me-1"></i>Report New Event</a>
+</div>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 border-start border-4 @(item.Severity == "High" ? "border-danger" : item.Severity == "Medium" ? "border-warning" : "border-info")">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge @(item.Severity == "High" ? "bg-danger" : item.Severity == "Medium" ? "bg-warning text-dark" : "bg-info") mb-2">
+                            @item.Severity Priority
+                        </span>
+                        <small class="text-muted">@item.EventDate.ToString("MMM dd, yyyy")</small>
+                    </div>
+                    <h5 class="card-title">@item.Title</h5>
+                    <p class="card-text text-muted small">@item.Description</p>
+                    
+                    <div class="mt-3 py-2 border-top">
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="bi bi-building me-2 text-secondary"></i>
+                            <span class="small">Apt: @(item.Apartment?.AptNumber ?? "N/A")</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-person me-2 text-secondary"></i>
+                            <span class="small">By: @(item.ReportedBy?.Name ?? "System")</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-end pb-3">
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-2">Details</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary me-2">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

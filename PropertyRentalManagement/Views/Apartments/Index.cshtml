@@ -1,0 +1,45 @@
+@model IEnumerable<PropertyRentalManagement.Models.Apartment>
+
+@{
+    ViewData["Title"] = "Apartments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Apartments</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New</a>
+</div>
+
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.AptNumber)</th>
+            <th>Building</th>
+            <th>@Html.DisplayNameFor(model => model.Rooms)</th>
+            <th>@Html.DisplayNameFor(model => model.Bathrooms)</th>
+            <th>@Html.DisplayNameFor(model => model.Rent)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.AptNumber)</td>
+            <td>@Html.DisplayFor(modelItem => item.Building.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Rooms)</td>
+            <td>@Html.DisplayFor(modelItem => item.Bathrooms)</td>
+            <td>@Html.DisplayFor(modelItem => item.Rent)</td>
+            <td>
+                @if(item.Status == "Available") { <span class="badge bg-success">@item.Status</span> }
+                else if(item.Status == "Under Maintenance") { <span class="badge bg-warning text-dark">@item.Status</span> }
+                else { <span class="badge bg-danger">@item.Status</span> }
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
