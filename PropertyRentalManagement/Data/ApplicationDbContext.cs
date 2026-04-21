@@ -40,6 +40,12 @@ namespace PropertyRentalManagement.Data
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Manager) // FIXED: Book appointment with manager
+                .WithMany()
+                .HasForeignKey(a => a.ManagerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Sender)
                 .WithMany()

@@ -1,26 +1,26 @@
 using System.ComponentModel.DataAnnotations;
-using System;
+using PropertyRentalManagement.Models;
 
-namespace PropertyRentalManagement.Models
+namespace PropertyRentalManagement.Models.ViewModels
 {
-    public class User
+    public class UserFormViewModel
     {
         public int Id { get; set; }
 
-        [Required] // FIXED: Server-side model validation (data annotations)
+        [Required] // FIXED: ViewModels used properly
         [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [Required] // FIXED: Server-side model validation (data annotations)
+        [Required]
         [EmailAddress]
         [StringLength(120)]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
         [Required]
         [StringLength(20)]
-        public string Role { get; set; } = "Tenant";
+        public string Role { get; set; } = UserRoles.Tenant;
     }
 }

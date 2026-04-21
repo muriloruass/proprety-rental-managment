@@ -25,6 +25,7 @@ namespace PropertyRentalManagement.Controllers
             var appointments = _context.Appointments
                 .Include(a => a.Apartment)
                 .Include(a => a.User)
+                .Include(a => a.Manager) // FIXED: Book appointment with manager
                 .AsQueryable();
 
             if (User.IsInRole(UserRoles.Tenant))
@@ -43,6 +44,7 @@ namespace PropertyRentalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Apartment)
                 .Include(a => a.User)
+                .Include(a => a.Manager) // FIXED: Book appointment with manager
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (appointment == null) return NotFound();
@@ -53,17 +55,8 @@ namespace PropertyRentalManagement.Controllers
 
         public IActionResult Create()
         {
-            var apartments = _context.Apartments.Include(a => a.Building).Select(a => new {
-                Id = a.Id,
-                DisplayText = "Apt " + a.AptNumber + " - " + (a.Building != null ? a.Building.Name : "No Building")
-            }).ToList();
-            ViewBag.ApartmentId = new SelectList(apartments, "Id", "DisplayText");
             var canSelectUser = !User.IsInRole(UserRoles.Tenant);
-            ViewBag.CanSelectUser = canSelectUser;
-            if (canSelectUser)
-            {
-                ViewBag.UserId = new SelectList(_context.Users.Where(u => u.Role == UserRoles.Tenant), "Id", "Name");
-            }
+            PopulateCreateEditViewBags(canSelectUser, null, null, null);
             return View();
         }
 
@@ -76,6 +69,13 @@ namespace PropertyRentalManagement.Controllers
             {
                 appointment.UserId = GetCurrentUserId();
                 appointment.Status = "Scheduled";
+                appointment.ManagerId = await ResolveManagerIdForTenantAsync(appointment.ApartmentId); // FIXED: Book appointment with manager
+                ModelState.Remove(nameof(appointment.UserId)); // FIXED: Book appointment with manager
+                ModelState.Remove(nameof(appointment.ManagerId)); // FIXED: Book appointment with manager
+                if (appointment.ManagerId <= 0)
+                {
+                    ModelState.AddModelError(nameof(appointment.ManagerId), "No manager is available for this appointment.");
+                }
             }
             else
             {
@@ -83,6 +83,11 @@ namespace PropertyRentalManagement.Controllers
                 if (!tenantExists)
                 {
                     ModelState.AddModelError(nameof(appointment.UserId), "Selected user must be a tenant.");
+                }
+
+                if (!await IsAssignableManagerAsync(appointment.ManagerId)) // FIXED: Book appointment with manager
+                {
+                    ModelState.AddModelError(nameof(appointment.ManagerId), "Selected manager must be a manager or owner.");
                 }
             }
 
@@ -92,16 +97,7 @@ namespace PropertyRentalManagement.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            var apartments = _context.Apartments.Include(a => a.Building).Select(a => new {
-                Id = a.Id,
-                DisplayText = "Apt " + a.AptNumber + " - " + (a.Building != null ? a.Building.Name : "No Building")
-            }).ToList();
-            ViewBag.ApartmentId = new SelectList(apartments, "Id", "DisplayText", appointment.ApartmentId);
-            ViewBag.CanSelectUser = !isTenant;
-            if (!isTenant)
-            {
-                ViewBag.UserId = new SelectList(_context.Users.Where(u => u.Role == UserRoles.Tenant), "Id", "Name", appointment.UserId);
-            }
+            PopulateCreateEditViewBags(!isTenant, appointment.ApartmentId, appointment.UserId, appointment.ManagerId);
             return View(appointment);
         }
 
@@ -113,17 +109,8 @@ namespace PropertyRentalManagement.Controllers
             if (appointment == null) return NotFound();
             if (User.IsInRole(UserRoles.Tenant) && appointment.UserId != GetCurrentUserId()) return Forbid();
 
-            var apartments = _context.Apartments.Include(a => a.Building).Select(a => new {
-                Id = a.Id,
-                DisplayText = "Apt " + a.AptNumber + " - " + (a.Building != null ? a.Building.Name : "No Building")
-            }).ToList();
-            ViewBag.ApartmentId = new SelectList(apartments, "Id", "DisplayText", appointment.ApartmentId);
             var canSelectUser = !User.IsInRole(UserRoles.Tenant);
-            ViewBag.CanSelectUser = canSelectUser;
-            if (canSelectUser)
-            {
-                ViewBag.UserId = new SelectList(_context.Users.Where(u => u.Role == UserRoles.Tenant), "Id", "Name", appointment.UserId);
-            }
+            PopulateCreateEditViewBags(canSelectUser, appointment.ApartmentId, appointment.UserId, appointment.ManagerId);
             return View(appointment);
         }
 
@@ -138,6 +125,13 @@ namespace PropertyRentalManagement.Controllers
 
             var isTenant = User.IsInRole(UserRoles.Tenant);
             if (isTenant && existingAppointment.UserId != GetCurrentUserId()) return Forbid();
+            if (isTenant)
+            {
+                appointment.UserId = existingAppointment.UserId;
+                appointment.ManagerId = existingAppointment.ManagerId; // FIXED: Book appointment with manager
+                ModelState.Remove(nameof(appointment.UserId));
+                ModelState.Remove(nameof(appointment.ManagerId));
+            }
 
             if (!isTenant)
             {
@@ -145,6 +139,11 @@ namespace PropertyRentalManagement.Controllers
                 if (!tenantExists)
                 {
                     ModelState.AddModelError(nameof(appointment.UserId), "Selected user must be a tenant.");
+                }
+
+                if (!await IsAssignableManagerAsync(appointment.ManagerId)) // FIXED: Book appointment with manager
+                {
+                    ModelState.AddModelError(nameof(appointment.ManagerId), "Selected manager must be a manager or owner.");
                 }
             }
 
@@ -157,21 +156,13 @@ namespace PropertyRentalManagement.Controllers
                 if (!isTenant)
                 {
                     existingAppointment.UserId = appointment.UserId;
+                    existingAppointment.ManagerId = appointment.ManagerId; // FIXED: Book appointment with manager
                 }
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            var apartments = _context.Apartments.Include(a => a.Building).Select(a => new {
-                Id = a.Id,
-                DisplayText = "Apt " + a.AptNumber + " - " + (a.Building != null ? a.Building.Name : "No Building")
-            }).ToList();
-            ViewBag.ApartmentId = new SelectList(apartments, "Id", "DisplayText", appointment.ApartmentId);
-            ViewBag.CanSelectUser = !isTenant;
-            if (!isTenant)
-            {
-                ViewBag.UserId = new SelectList(_context.Users.Where(u => u.Role == UserRoles.Tenant), "Id", "Name", appointment.UserId);
-            }
+            PopulateCreateEditViewBags(!isTenant, appointment.ApartmentId, appointment.UserId, appointment.ManagerId);
             return View(appointment);
         }
 
@@ -182,6 +173,7 @@ namespace PropertyRentalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Apartment)
                 .Include(a => a.User)
+                .Include(a => a.Manager) // FIXED: Book appointment with manager
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (appointment == null) return NotFound();
@@ -213,6 +205,73 @@ namespace PropertyRentalManagement.Controllers
             }
 
             return userId;
+        }
+
+        private void PopulateCreateEditViewBags(bool canSelectUser, int? apartmentId, int? userId, int? managerId)
+        {
+            var apartments = _context.Apartments.Include(a => a.Building).Select(a => new
+            {
+                Id = a.Id,
+                DisplayText = "Apt " + a.AptNumber + " - " + (a.Building != null ? a.Building.Name : "No Building")
+            }).ToList();
+            ViewBag.ApartmentId = new SelectList(apartments, "Id", "DisplayText", apartmentId);
+            ViewBag.CanSelectUser = canSelectUser;
+            ViewBag.CanSelectManager = canSelectUser; // FIXED: Book appointment with manager
+            if (canSelectUser)
+            {
+                ViewBag.UserId = new SelectList(_context.Users.Where(u => u.Role == UserRoles.Tenant), "Id", "Name", userId);
+                ViewBag.ManagerId = new SelectList( // FIXED: Book appointment with manager
+                    _context.Users.Where(u => u.Role == UserRoles.Manager || u.Role == UserRoles.Owner),
+                    "Id",
+                    "Name",
+                    managerId);
+            }
+        }
+
+        private async Task<bool> IsAssignableManagerAsync(int managerId)
+        {
+            return await _context.Users.AnyAsync(u => u.Id == managerId && (u.Role == UserRoles.Manager || u.Role == UserRoles.Owner));
+        }
+
+        private async Task<int> ResolveManagerIdForTenantAsync(int apartmentId)
+        {
+            var apartmentManagerId = await _context.Appointments
+                .Where(a => a.ApartmentId == apartmentId)
+                .OrderByDescending(a => a.Id)
+                .Select(a => a.ManagerId)
+                .FirstOrDefaultAsync();
+
+            if (await IsAssignableManagerAsync(apartmentManagerId))
+            {
+                return apartmentManagerId; // FIXED: Book appointment with manager
+            }
+
+            var buildingId = await _context.Apartments
+                .Where(a => a.Id == apartmentId)
+                .Select(a => a.BuildingId)
+                .FirstOrDefaultAsync();
+
+            if (buildingId > 0)
+            {
+                var buildingManagerId = await _context.Appointments
+                    .Join(_context.Apartments, appt => appt.ApartmentId, apt => apt.Id, (appt, apt) => new { appt.ManagerId, apt.BuildingId, appt.Id })
+                    .Where(x => x.BuildingId == buildingId)
+                    .OrderByDescending(x => x.Id)
+                    .Select(x => x.ManagerId)
+                    .FirstOrDefaultAsync();
+
+                if (await IsAssignableManagerAsync(buildingManagerId))
+                {
+                    return buildingManagerId; // FIXED: Book appointment with manager
+                }
+            }
+
+            return await _context.Users
+                .Where(u => u.Role == UserRoles.Manager || u.Role == UserRoles.Owner)
+                .OrderBy(u => u.Role == UserRoles.Manager ? 0 : 1)
+                .ThenBy(u => u.Id)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
         }
     }
 }

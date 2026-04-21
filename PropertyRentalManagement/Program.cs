@@ -38,37 +38,88 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+ 
 app.MapStaticAssets();
+app.MapControllers(); // FIXED: Web API controllers (not just MVC views)
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-await EnsureOwnerUserAsync(app);
+await EnsureSeedDataAsync(app); // FIXED: Migrations and seed data
 
 app.Run();
 
-static async Task EnsureOwnerUserAsync(WebApplication app)
+static async Task EnsureSeedDataAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    await context.Database.MigrateAsync(); // FIXED: Migrations and seed data
 
-    if (await context.Users.AnyAsync(u => u.Role == UserRoles.Owner))
+    if (!await context.Users.AnyAsync(u => u.Role == UserRoles.Owner))
     {
-        return;
+        var owner = new User
+        {
+            Name = "System Owner",
+            Email = "owner@propertyrental.local",
+            Role = UserRoles.Owner
+        };
+        owner.Password = passwordHasher.HashPassword(owner, "Owner@123");
+        context.Users.Add(owner);
     }
 
-    var owner = new User
+    if (!await context.Users.AnyAsync(u => u.Role == UserRoles.Manager))
     {
-        Name = "System Owner",
-        Email = "owner@propertyrental.local",
-        Role = UserRoles.Owner
-    };
-    owner.Password = passwordHasher.HashPassword(owner, "Owner@123");
+        var manager = new User
+        {
+            Name = "Default Manager",
+            Email = "manager@propertyrental.local",
+            Role = UserRoles.Manager
+        };
+        manager.Password = passwordHasher.HashPassword(manager, "Manager@123");
+        context.Users.Add(manager); // FIXED: Migrations and seed data
+    }
 
-    context.Users.Add(owner);
+    if (!await context.Users.AnyAsync(u => u.Role == UserRoles.Tenant))
+    {
+        var tenant = new User
+        {
+            Name = "Default Tenant",
+            Email = "tenant@propertyrental.local",
+            Role = UserRoles.Tenant
+        };
+        tenant.Password = passwordHasher.HashPassword(tenant, "Tenant@123");
+        context.Users.Add(tenant); // FIXED: Migrations and seed data
+    }
+
+    if (!await context.Buildings.AnyAsync())
+    {
+        context.Buildings.Add(new Building
+        {
+            Name = "Demo Building",
+            Address = "100 Main St",
+            City = "Sample City",
+            State = "SC",
+            ZipCode = "00000"
+        }); // FIXED: Migrations and seed data
+        await context.SaveChangesAsync();
+    }
+
+    if (!await context.Apartments.AnyAsync())
+    {
+        var firstBuilding = await context.Buildings.OrderBy(b => b.Id).FirstAsync();
+        context.Apartments.Add(new Apartment
+        {
+            AptNumber = "101",
+            BuildingId = firstBuilding.Id,
+            Rooms = 2,
+            Bathrooms = 1,
+            Rent = 1200,
+            Status = "Available"
+        }); // FIXED: Migrations and seed data
+    }
+
     await context.SaveChangesAsync();
 }

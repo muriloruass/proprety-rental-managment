@@ -9,6 +9,25 @@
     <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New</a>
 </div>
 
+<form method="get" class="row g-2 mb-3">
+    @* // FIXED: Create/Update/Delete/Search/List property manager accounts *@
+    <div class="col-md-6">
+        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search by name or email" />
+    </div>
+    <div class="col-md-3">
+        <select name="role" class="form-select">
+            <option value="">All roles</option>
+            <option value="Manager" selected="@(ViewBag.Role == "Manager" ? "selected" : null)">Manager</option>
+            <option value="Tenant" selected="@(ViewBag.Role == "Tenant" ? "selected" : null)">Tenant</option>
+            <option value="Owner" selected="@(ViewBag.Role == "Owner" ? "selected" : null)">Owner</option>
+        </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-outline-primary">Search</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>

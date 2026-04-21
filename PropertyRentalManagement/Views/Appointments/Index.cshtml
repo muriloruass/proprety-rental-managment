@@ -14,6 +14,7 @@
         <tr>
             <th>Apartment</th>
             <th>User</th>
+            <th>Manager</th>
             <th>@Html.DisplayNameFor(model => model.AppointmentDate)</th>
             <th>@Html.DisplayNameFor(model => model.Status)</th>
             <th>Actions</th>
@@ -24,6 +25,7 @@
         <tr>
             <td>@Html.DisplayFor(modelItem => item.Apartment.AptNumber)</td>
             <td>@Html.DisplayFor(modelItem => item.User.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Manager.Name)</td>
             <td>@item.AppointmentDate.ToString("g")</td>
             <td>
                 @if(item.Status == "Scheduled") { <span class="badge bg-primary">@item.Status</span> }

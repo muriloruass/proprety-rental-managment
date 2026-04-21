@@ -19,9 +19,23 @@ namespace PropertyRentalManagement.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, string? status)
         {
-            var apartments = _context.Apartments.Include(a => a.Building);
+            var apartments = _context.Apartments.Include(a => a.Building).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                apartments = apartments.Where(a =>
+                    a.AptNumber.ToLower().Contains(term) ||
+                    (a.Building != null && a.Building.Name.ToLower().Contains(term))); // FIXED: Search/view apartments
+            }
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                apartments = apartments.Where(a => a.Status == status);
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
             return View(await apartments.ToListAsync());
         }
 

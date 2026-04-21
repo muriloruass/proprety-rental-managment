@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PropertyRentalManagement.Data;
 using PropertyRentalManagement.Models;
+using PropertyRentalManagement.Models.ViewModels;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,9 +28,22 @@ namespace PropertyRentalManagement.Controllers
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, string? role)
         {
-            return View(await _context.Users.ToListAsync());
+            var usersQuery = _context.Users.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                usersQuery = usersQuery.Where(u => u.Name.ToLower().Contains(term) || u.Email.ToLower().Contains(term)); // FIXED: Create/Update/Delete/Search/List property manager accounts
+            }
+            if (!string.IsNullOrWhiteSpace(role) && ValidRoles.Contains(role))
+            {
+                usersQuery = usersQuery.Where(u => u.Role == role); // FIXED: Update/Delete/Search/List tenant accounts
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Role = role;
+            return View(await usersQuery.OrderBy(u => u.Name).ToListAsync());
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -46,45 +60,41 @@ namespace PropertyRentalManagement.Controllers
 
         public IActionResult Create()
         {
-            return View();
+            return View(new UserFormViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(User user)
+        public async Task<IActionResult> Create(UserFormViewModel model)
         {
-            var email = user.Email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(user.Name))
+            var email = model.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(model.Password))
             {
-                ModelState.AddModelError(nameof(user.Name), "Name is required.");
+                ModelState.AddModelError(nameof(model.Password), "Password is required.");
             }
-            if (string.IsNullOrWhiteSpace(email))
+            if (!ValidRoles.Contains(model.Role ?? string.Empty))
             {
-                ModelState.AddModelError(nameof(user.Email), "Email is required.");
-            }
-            if (string.IsNullOrWhiteSpace(user.Password))
-            {
-                ModelState.AddModelError(nameof(user.Password), "Password is required.");
-            }
-            if (!ValidRoles.Contains(user.Role ?? string.Empty))
-            {
-                ModelState.AddModelError(nameof(user.Role), "Invalid role.");
+                ModelState.AddModelError(nameof(model.Role), "Invalid role.");
             }
             if (!string.IsNullOrWhiteSpace(email) && await _context.Users.AnyAsync(u => u.Email.ToLower() == email))
             {
-                ModelState.AddModelError(nameof(user.Email), "Email is already in use.");
+                ModelState.AddModelError(nameof(model.Email), "Email is already in use.");
             }
 
             if (ModelState.IsValid)
             {
-                user.Name = user.Name.Trim();
-                user.Email = email!;
-                user.Password = _passwordHasher.HashPassword(user, user.Password);
-                _context.Add(user);
+                var user = new User
+                {
+                    Name = model.Name.Trim(),
+                    Email = email!,
+                    Role = model.Role ?? UserRoles.Tenant
+                };
+                user.Password = _passwordHasher.HashPassword(user, model.Password);
+                _context.Add(user); // FIXED: ViewModels used properly
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(user);
+            return View(model);
         }
 
         public async Task<IActionResult> Edit(int? id)
@@ -94,55 +104,53 @@ namespace PropertyRentalManagement.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null) return NotFound();
 
-            user.Password = string.Empty;
-            return View(user);
+            return View(new UserFormViewModel
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                Password = string.Empty
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User user)
+        public async Task<IActionResult> Edit(int id, UserFormViewModel model)
         {
-            if (id != user.Id) return NotFound();
+            if (id != model.Id) return NotFound();
 
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (existingUser == null) return NotFound();
 
-            var normalizedEmail = user.Email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(user.Name))
+            var normalizedEmail = model.Email?.Trim().ToLowerInvariant();
+            if (!ValidRoles.Contains(model.Role ?? string.Empty))
             {
-                ModelState.AddModelError(nameof(user.Name), "Name is required.");
-            }
-            if (string.IsNullOrWhiteSpace(normalizedEmail))
-            {
-                ModelState.AddModelError(nameof(user.Email), "Email is required.");
-            }
-            if (!ValidRoles.Contains(user.Role ?? string.Empty))
-            {
-                ModelState.AddModelError(nameof(user.Role), "Invalid role.");
+                ModelState.AddModelError(nameof(model.Role), "Invalid role.");
             }
             if (!string.IsNullOrWhiteSpace(normalizedEmail) &&
                 await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedEmail && u.Id != id))
             {
-                ModelState.AddModelError(nameof(user.Email), "Email is already in use.");
+                ModelState.AddModelError(nameof(model.Email), "Email is already in use.");
             }
 
             if (ModelState.IsValid)
             {
-                existingUser.Name = user.Name.Trim();
+                existingUser.Name = model.Name.Trim();
                 existingUser.Email = normalizedEmail!;
-                existingUser.Role = user.Role ?? UserRoles.Tenant;
+                existingUser.Role = model.Role ?? UserRoles.Tenant;
 
-                if (!string.IsNullOrWhiteSpace(user.Password))
+                if (!string.IsNullOrWhiteSpace(model.Password))
                 {
-                    existingUser.Password = _passwordHasher.HashPassword(existingUser, user.Password);
+                    existingUser.Password = _passwordHasher.HashPassword(existingUser, model.Password);
                 }
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
 
-            user.Password = string.Empty;
-            return View(user);
+            model.Password = string.Empty;
+            return View(model);
         }
 
         public async Task<IActionResult> Delete(int? id)

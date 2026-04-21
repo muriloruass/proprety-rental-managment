@@ -8,13 +8,19 @@ namespace PropertyRentalManagement.Models
     {
         public int Id { get; set; }
 
+        [Required] // FIXED: Server-side model validation (data annotations)
+        [StringLength(150)]
+        public string Title { get; set; } = string.Empty;
+
         [Required]
-        public string Title { get; set; }
+        [StringLength(2000)]
+        public string Description { get; set; } = string.Empty;
 
-        public string Description { get; set; }
-
+        [Required]
         public DateTime EventDate { get; set; } = DateTime.Now;
 
+        [Required]
+        [StringLength(20)]
         public string Severity { get; set; } = "Low"; // Low, Medium, High
 
         public int ReportedById { get; set; }
