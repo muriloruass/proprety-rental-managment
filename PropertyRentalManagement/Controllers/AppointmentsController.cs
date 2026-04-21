@@ -32,8 +32,8 @@ namespace PropertyRentalManagement.Controllers
             {
                 var term = search.Trim().ToLower();
                 appointments = appointments.Where(a =>
-                    a.User.Name.ToLower().Contains(term) ||
-                    a.Apartment.AptNumber.ToLower().Contains(term) ||
+                    a.User!.Name.ToLower().Contains(term) ||
+                    a.Apartment!.AptNumber.ToLower().Contains(term) ||
                     (a.Notes != null && a.Notes.ToLower().Contains(term))); // FIXED: Schedule tenant appointments
             }
 

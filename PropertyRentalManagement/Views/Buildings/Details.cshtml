@@ -27,6 +27,9 @@
     </div>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    @if (User.IsInRole(UserRoles.Owner) || User.IsInRole(UserRoles.Manager))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary px-4">Edit</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary px-4 ms-2">Back to List</a>
 </div>

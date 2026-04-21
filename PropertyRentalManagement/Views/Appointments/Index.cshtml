@@ -33,9 +33,9 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.Apartment.AptNumber)</td>
-            <td>@Html.DisplayFor(modelItem => item.User.Name)</td>
-            <td>@Html.DisplayFor(modelItem => item.Manager.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Apartment!.AptNumber)</td>
+            <td>@Html.DisplayFor(modelItem => item.User!.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Manager!.Name)</td>
             <td>@item.AppointmentDate.ToString("g")</td>
             <td>
                 @if(item.Status == "Scheduled") { <span class="badge bg-primary">@item.Status</span> }

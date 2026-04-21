@@ -34,7 +34,7 @@ namespace PropertyRentalManagement.Controllers
                 eventsQuery = eventsQuery.Where(e =>
                     e.Title.ToLower().Contains(term) ||
                     e.Description.ToLower().Contains(term) ||
-                    e.Apartment.AptNumber.ToLower().Contains(term)); // FIXED: Report events to owner
+                    e.Apartment!.AptNumber.ToLower().Contains(term)); // FIXED: Report events to owner
             }
 
             ViewBag.Search = search;

@@ -38,6 +38,7 @@ namespace PropertyRentalManagement.Controllers
             return View(await messagesQuery.ToListAsync());
         }
 
+
         // GET: Messages/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -81,10 +82,17 @@ namespace PropertyRentalManagement.Controllers
         // POST: Messages/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Message message)
+        public async Task<IActionResult> Create([Bind("ReceiverId,Subject,Content")] Message message)
         {
             var currentUserId = GetCurrentUserId();
             message.SenderId = currentUserId;
+            message.SentAt = DateTime.Now; // Set before validation if needed, or just handle it.
+            
+            // Re-validate since we added SenderId manually
+            ModelState.Remove(nameof(message.SenderId));
+            ModelState.Remove(nameof(message.Sender));
+            ModelState.Remove(nameof(message.Receiver));
+
             var receiverAllowed = await GetAllowedReceiversQuery(currentUserId).AnyAsync(u => u.Id == message.ReceiverId);
             if (!receiverAllowed)
             {
@@ -93,7 +101,6 @@ namespace PropertyRentalManagement.Controllers
 
             if (ModelState.IsValid)
             {
-                message.SentAt = DateTime.Now;
                 _context.Add(message);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
