@@ -21,14 +21,24 @@ namespace PropertyRentalManagement.Controllers
         }
 
         // GET: Events
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search)
         {
-            var events = await _context.Events
+            var eventsQuery = _context.Events
                 .Include(e => e.ReportedBy)
                 .Include(e => e.Apartment)
-                .OrderByDescending(e => e.EventDate)
-                .ToListAsync();
-            return View(events);
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                eventsQuery = eventsQuery.Where(e =>
+                    e.Title.ToLower().Contains(term) ||
+                    e.Description.ToLower().Contains(term) ||
+                    e.Apartment.AptNumber.ToLower().Contains(term)); // FIXED: Report events to owner
+            }
+
+            ViewBag.Search = search;
+            return View(await eventsQuery.OrderByDescending(e => e.EventDate).ToListAsync());
         }
 
         // GET: Events/Details/5

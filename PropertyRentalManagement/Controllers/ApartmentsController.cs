@@ -19,7 +19,7 @@ namespace PropertyRentalManagement.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? search, string? status)
+        public async Task<IActionResult> Index(string? search, string? status, decimal? minPrice, decimal? maxPrice, int? rooms)
         {
             var apartments = _context.Apartments.Include(a => a.Building).AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
@@ -33,9 +33,24 @@ namespace PropertyRentalManagement.Controllers
             {
                 apartments = apartments.Where(a => a.Status == status);
             }
+            if (minPrice.HasValue)
+            {
+                apartments = apartments.Where(a => a.Rent >= minPrice.Value); // FIXED: Search/view apartments
+            }
+            if (maxPrice.HasValue)
+            {
+                apartments = apartments.Where(a => a.Rent <= maxPrice.Value); // FIXED: Search/view apartments
+            }
+            if (rooms.HasValue)
+            {
+                apartments = apartments.Where(a => a.Rooms >= rooms.Value); // FIXED: Search/view apartments
+            }
 
             ViewBag.Search = search;
             ViewBag.Status = status;
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
+            ViewBag.Rooms = rooms;
             return View(await apartments.ToListAsync());
         }
 

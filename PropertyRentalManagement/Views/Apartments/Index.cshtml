@@ -9,22 +9,36 @@
     <a asp-action="Create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New</a>
 </div>
 
-<form method="get" class="row g-2 mb-3">
+<form method="get" class="row g-3 mb-4 p-3 bg-white shadow-sm rounded">
     @* // FIXED: Search/view apartments *@
-    <div class="col-md-6">
-        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search apartment number or building" />
+    <div class="col-md-4">
+        <label class="form-label small text-muted">Keyword</label>
+        <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Apt # or Building" />
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Status</label>
         <select name="status" class="form-select">
-            <option value="">All statuses</option>
+            <option value="">All</option>
             <option value="Available" selected="@(ViewBag.Status == "Available" ? "selected" : null)">Available</option>
             <option value="Rented" selected="@(ViewBag.Status == "Rented" ? "selected" : null)">Rented</option>
-            <option value="Under Maintenance" selected="@(ViewBag.Status == "Under Maintenance" ? "selected" : null)">Under Maintenance</option>
+            <option value="Under Maintenance" selected="@(ViewBag.Status == "Under Maintenance" ? "selected" : null)">Maintenance</option>
         </select>
     </div>
-    <div class="col-md-3 d-flex gap-2">
-        <button type="submit" class="btn btn-outline-primary">Search</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Min Price</label>
+        <input type="number" name="minPrice" value="@ViewBag.MinPrice" class="form-control" placeholder="0" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small text-muted">Max Price</label>
+        <input type="number" name="maxPrice" value="@ViewBag.MaxPrice" class="form-control" placeholder="10000" />
+    </div>
+    <div class="col-md-1">
+        <label class="form-label small text-muted">Rooms</label>
+        <input type="number" name="rooms" value="@ViewBag.Rooms" class="form-control" placeholder="1" />
+    </div>
+    <div class="col-md-1 d-flex align-items-end gap-1">
+        <button type="submit" class="btn btn-primary w-100" title="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        <a asp-action="Index" class="btn btn-secondary w-100" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
     </div>
 </form>
 

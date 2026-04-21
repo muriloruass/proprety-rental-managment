@@ -62,12 +62,20 @@ namespace PropertyRentalManagement.Controllers
         }
 
         // GET: Messages/Create
-        public IActionResult Create()
+        public IActionResult Create(int? receiverId, string? subject)
         {
             var currentUserId = GetCurrentUserId();
             var receiverQuery = GetAllowedReceiversQuery(currentUserId);
-            ViewBag.ReceiverId = new SelectList(receiverQuery.ToList(), "Id", "Name");
-            return View();
+            
+            ViewBag.ReceiverId = new SelectList(receiverQuery.ToList(), "Id", "Name", receiverId);
+            
+            var model = new Message();
+            if (!string.IsNullOrWhiteSpace(subject))
+            {
+                model.Subject = subject.StartsWith("Re: ") ? subject : "Re: " + subject; // FIXED: Reply to tenant messages
+            }
+            
+            return View(model);
         }
 
         // POST: Messages/Create

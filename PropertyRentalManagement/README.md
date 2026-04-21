@@ -1,63 +1,78 @@
-# Property Rental Management
+# Property Rental Management System
 
-Sistema web em **ASP.NET Core MVC + Entity Framework Core + SQL Server** para gerenciamento de locação de imóveis.
+A comprehensive ASP.NET Core MVC application designed to streamline the relationship between property owners, managers, and tenants. This system provides a robust platform for managing buildings, apartments, appointments, and communication.
 
-## O que este projeto faz
+## 🚀 Tech Stack
 
-O sistema conecta 3 perfis:
+- **Framework:** ASP.NET Core 9.0 (MVC)
+- **Language:** C#
+- **Database:** SQL Server
+- **ORM:** Entity Framework Core
+- **Frontend:** HTML5, CSS3 (Bootstrap 5), JavaScript (jQuery for validation)
+- **Security:** Cookie-based Authentication & Role-based Authorization (Admin, Manager, Tenant)
+- **API:** RESTful Web API controllers included
 
-- **Owner (proprietário/admin):** controla contas, imóveis, apartamentos, mensagens, eventos e agendamentos.
-- **Manager (gerente):** gerencia prédios/apartamentos, agenda visitas, troca mensagens e reporta eventos.
-- **Tenant (inquilino/potencial locatário):** cria conta, vê apartamentos, agenda visita e envia mensagens.
+## 🛠️ How to Run Locally
 
-Módulos principais já no projeto:
+1. **Clone the Repository:**
+   ```bash
+   git clone [repository-url]
+   cd PropertyRentalManagement
+   ```
 
-- Buildings (prédios)
-- Apartments (apartamentos)
-- Users (usuários)
-- Appointments (agendamentos)
-- Messages (mensagens)
-- Events (ocorrências/incidentes)
+2. **Configure Connection String:**
+   Open `appsettings.json` and update the `DefaultConnection` string to point to your local SQL Server instance.
+   ```json
+   "ConnectionStrings": {
+     "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=PropertyRentalDb;Trusted_Connection=True;MultipleActiveResultSets=true"
+   }
+   ```
 
-## Segurança e autenticação (implementado)
+3. **Update Database:**
+   Run the following command to apply migrations and seed initial data:
+   ```bash
+   dotnet ef database update
+   ```
 
-- Login com **cookie authentication**.
-- Logout e registro de tenant.
-- Controle de acesso por papel (Owner/Manager/Tenant).
-- Proteção de rotas com `[Authorize]`.
-- Senhas com hash (`PasswordHasher`), sem armazenamento em texto puro para novos logins/cadastros.
-- Impersonação bloqueada em fluxos críticos:
-  - mensagem usa usuário logado como remetente
-  - evento usa usuário logado como reportante
-  - tenant só vê/gera seus próprios agendamentos/mensagens
+4. **Run the Application:**
+   ```bash
+   dotnet run
+   ```
+   Access the app at `https://localhost:7147` (or the port specified in your output).
 
-## Primeiro acesso
+## 👥 User Roles & Permissions
 
-Se não existir nenhum Owner no banco, o sistema cria automaticamente:
+### Admin / Property Owner
+- Full system control.
+- Manage (CRUD) Manager and Tenant accounts.
+- View and search all user profiles.
+- Full access to all property and communication data.
 
-- **Email:** `owner@propertyrental.local`
-- **Senha:** `Owner@123`
+### Property Manager
+- CRUD operations for Buildings and Apartments.
+- Manage apartment status (Available, Rented, Maintenance).
+- Schedule and manage tenant appointments.
+- Read and reply to messages from tenants.
+- Report maintenance events or issues to the owner.
 
-Depois do primeiro login, troque essa senha.
+### Tenant
+- Self-registration and login.
+- Search and browse available apartments with price and room filters.
+- Book viewing appointments directly with managers.
+- Send messages/inquiries to the management team.
 
-## Como rodar
+## ✨ Implemented Features
 
-1. Configure `ConnectionStrings:DefaultConnection` em `appsettings.json`.
-2. Aplique migrations no seu SQL Server.
-3. Execute:
+- **Auth System:** Secure login/logout and self-registration for tenants.
+- **Role-Based UI:** Navbar and action buttons dynamically adapt based on user roles.
+- **Advanced Search:** Multi-parameter filtering for apartments (Price, Rooms, Status).
+- **Communication Hub:** Full messaging system with "Reply" functionality.
+- **Task Management:** Appointment scheduling and event/issue reporting.
+- **Data Integrity:** Server-side validation (Data Annotations) and Client-side JS validation.
+- **API Access:** Exposes programmatic endpoints for apartments, buildings, and more.
 
-```bash
-dotnet restore
-dotnet build
-dotnet run
-```
+## ⚠️ Known Limitations
 
-4. Abra URL mostrada no terminal e faça login.
-
-## Estrutura resumida
-
-- `Controllers/`: regras MVC e autorização por papel
-- `Models/`: entidades de domínio
-- `Data/ApplicationDbContext.cs`: mapeamento EF Core
-- `Views/`: interface Razor
-- `Migrations/`: histórico de banco
+- **Image Uploads:** Currently uses text-based placeholders; file storage for apartment photos is planned for future releases.
+- **Real-time Notifications:** Messages rely on page refreshes; SignalR integration is not yet implemented.
+- **Reports:** Financial reporting module is currently a manual SQL view rather than a dynamic dashboard.

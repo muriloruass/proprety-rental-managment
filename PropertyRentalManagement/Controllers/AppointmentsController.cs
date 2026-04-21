@@ -20,7 +20,7 @@ namespace PropertyRentalManagement.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search)
         {
             var appointments = _context.Appointments
                 .Include(a => a.Apartment)
@@ -28,13 +28,23 @@ namespace PropertyRentalManagement.Controllers
                 .Include(a => a.Manager) // FIXED: Book appointment with manager
                 .AsQueryable();
 
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                appointments = appointments.Where(a =>
+                    a.User.Name.ToLower().Contains(term) ||
+                    a.Apartment.AptNumber.ToLower().Contains(term) ||
+                    (a.Notes != null && a.Notes.ToLower().Contains(term))); // FIXED: Schedule tenant appointments
+            }
+
             if (User.IsInRole(UserRoles.Tenant))
             {
                 var currentUserId = GetCurrentUserId();
                 appointments = appointments.Where(a => a.UserId == currentUserId);
             }
 
-            return View(await appointments.ToListAsync());
+            ViewBag.Search = search;
+            return View(await appointments.OrderByDescending(a => a.AppointmentDate).ToListAsync());
         }
 
         public async Task<IActionResult> Details(int? id)
