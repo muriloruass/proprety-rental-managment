@@ -40,14 +40,14 @@ app.UseAuthentication();
 app.UseAuthorization();
  
 app.MapStaticAssets();
-app.MapControllers(); // FIXED: Web API controllers (not just MVC views)
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-await EnsureSeedDataAsync(app); // FIXED: Migrations and seed data
+await EnsureSeedDataAsync(app);
 
 app.Run();
 
@@ -56,7 +56,7 @@ static async Task EnsureSeedDataAsync(WebApplication app)
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
-    await context.Database.MigrateAsync(); // FIXED: Migrations and seed data
+    await context.Database.MigrateAsync();
 
     if (!await context.Users.AnyAsync(u => u.Role == UserRoles.Owner))
     {
@@ -79,7 +79,7 @@ static async Task EnsureSeedDataAsync(WebApplication app)
             Role = UserRoles.Manager
         };
         manager.Password = passwordHasher.HashPassword(manager, "Manager@123");
-        context.Users.Add(manager); // FIXED: Migrations and seed data
+        context.Users.Add(manager);
     }
 
     if (!await context.Users.AnyAsync(u => u.Role == UserRoles.Tenant))
@@ -91,7 +91,7 @@ static async Task EnsureSeedDataAsync(WebApplication app)
             Role = UserRoles.Tenant
         };
         tenant.Password = passwordHasher.HashPassword(tenant, "Tenant@123");
-        context.Users.Add(tenant); // FIXED: Migrations and seed data
+        context.Users.Add(tenant);
     }
 
     if (!await context.Buildings.AnyAsync())
@@ -103,7 +103,7 @@ static async Task EnsureSeedDataAsync(WebApplication app)
             City = "Sample City",
             State = "SC",
             ZipCode = "00000"
-        }); // FIXED: Migrations and seed data
+        });
         await context.SaveChangesAsync();
     }
 
@@ -118,7 +118,7 @@ static async Task EnsureSeedDataAsync(WebApplication app)
             Bathrooms = 1,
             Rent = 1200,
             Status = "Available"
-        }); // FIXED: Migrations and seed data
+        });
     }
 
     await context.SaveChangesAsync();

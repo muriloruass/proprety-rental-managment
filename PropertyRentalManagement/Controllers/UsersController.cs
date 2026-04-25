@@ -34,11 +34,12 @@ namespace PropertyRentalManagement.Controllers
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var term = search.Trim().ToLower();
-                usersQuery = usersQuery.Where(u => u.Name.ToLower().Contains(term) || u.Email.ToLower().Contains(term)); // FIXED: Create/Update/Delete/Search/List property manager accounts
+                usersQuery = usersQuery.Where(u => u.Name.ToLower().Contains(term) || u.Email.ToLower().Contains(term));
             }
             if (!string.IsNullOrWhiteSpace(role) && ValidRoles.Contains(role))
             {
-                usersQuery = usersQuery.Where(u => u.Role == role); // FIXED: Update/Delete/Search/List tenant accounts
+                var normalizedRole = ValidRoles.First(r => r.Equals(role, StringComparison.OrdinalIgnoreCase));
+                usersQuery = usersQuery.Where(u => u.Role == normalizedRole);
             }
 
             ViewBag.Search = search;
@@ -90,7 +91,7 @@ namespace PropertyRentalManagement.Controllers
                     Role = model.Role ?? UserRoles.Tenant
                 };
                 user.Password = _passwordHasher.HashPassword(user, model.Password);
-                _context.Add(user); // FIXED: ViewModels used properly
+                _context.Add(user);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }

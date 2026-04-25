@@ -7,11 +7,11 @@ namespace PropertyRentalManagement.Models
     {
         public int Id { get; set; }
 
-        [Required] // FIXED: Server-side model validation (data annotations)
+        [Required]
         [StringLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [Required] // FIXED: Server-side model validation (data annotations)
+        [Required]
         [EmailAddress]
         [StringLength(120)]
         public string Email { get; set; } = string.Empty;

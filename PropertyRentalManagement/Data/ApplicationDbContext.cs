@@ -41,7 +41,7 @@ namespace PropertyRentalManagement.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.Manager) // FIXED: Book appointment with manager
+                .HasOne(a => a.Manager)
                 .WithMany()
                 .HasForeignKey(a => a.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);

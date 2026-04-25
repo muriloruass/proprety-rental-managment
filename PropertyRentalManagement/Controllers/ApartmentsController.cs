@@ -27,7 +27,7 @@ namespace PropertyRentalManagement.Controllers
                 var term = search.Trim().ToLower();
                 apartments = apartments.Where(a =>
                     a.AptNumber.ToLower().Contains(term) ||
-                    (a.Building != null && a.Building.Name.ToLower().Contains(term))); // FIXED: Search/view apartments
+                    (a.Building != null && a.Building.Name.ToLower().Contains(term)));
             }
             if (!string.IsNullOrWhiteSpace(status))
             {
@@ -35,15 +35,15 @@ namespace PropertyRentalManagement.Controllers
             }
             if (minPrice.HasValue)
             {
-                apartments = apartments.Where(a => a.Rent >= minPrice.Value); // FIXED: Search/view apartments
+                apartments = apartments.Where(a => a.Rent >= minPrice.Value);
             }
             if (maxPrice.HasValue)
             {
-                apartments = apartments.Where(a => a.Rent <= maxPrice.Value); // FIXED: Search/view apartments
+                apartments = apartments.Where(a => a.Rent <= maxPrice.Value);
             }
             if (rooms.HasValue)
             {
-                apartments = apartments.Where(a => a.Rooms >= rooms.Value); // FIXED: Search/view apartments
+                apartments = apartments.Where(a => a.Rooms >= rooms.Value);
             }
 
             ViewBag.Search = search;
